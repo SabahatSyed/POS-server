@@ -5,9 +5,16 @@ const { check } = require("../validations/company.validation");
 
 router.post(
   "/register",
-  validate(check("register")),
+  //validate(check("register")),
   CompanyController.registerCompany
 );
+
+router.get(
+  "/",
+  //validate(check("register")),
+  CompanyController.getCompanies
+);
+
 
 
 module.exports = router
