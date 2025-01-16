@@ -1,0 +1,143 @@
+const BatchWiseOpeningStock = require("../models/batchWiseOpeningStock.schema");
+const Batch = require("../models/batch.schema");
+const InventoryInformation = require("../models/inventoryInfo.schema");
+
+module.exports = {
+  // Create a new Batch Wise Opening Stock entry
+  create: async (req, res) => {
+    try {
+      const { batch, inventory, ...data } = req.body;
+
+      // Check if the referenced Batch exists
+      const batchExists = await Batch.findById(batch);
+      if (!batchExists) {
+        return res.status(404).json({ message: "Batch not found." });
+      }
+
+      // Check if the referenced Inventory exists
+      const inventoryExists = await InventoryInformation.findById(inventory);
+      if (!inventoryExists) {
+        return res.status(404).json({ message: "Inventory not found." });
+      }
+
+      const openingStock = new BatchWiseOpeningStock({ ...data, batch, inventory });
+      const savedStock = await openingStock.save();
+
+      return res.status(201).json({
+        message: "Batch Wise Opening Stock created successfully.",
+        data: savedStock,
+      });
+    } catch (error) {
+      return res.status(500).json({
+        message: "Error creating Batch Wise Opening Stock.",
+        error: error.message,
+      });
+    }
+  },
+
+  // Retrieve all Batch Wise Opening Stocks
+  getAll: async (req, res) => {
+    try {
+      const stocks = await BatchWiseOpeningStock.find()
+        .populate("batch")
+        .populate("inventory");
+      return res.status(200).json({
+        message: "Batch Wise Opening Stocks retrieved successfully.",
+        data: stocks,
+      });
+    } catch (error) {
+      return res.status(500).json({
+        message: "Error retrieving Batch Wise Opening Stocks.",
+        error: error.message,
+      });
+    }
+  },
+
+  // Retrieve a specific Batch Wise Opening Stock by ID
+  getById: async (req, res) => {
+    try {
+      const { id } = req.params;
+      const stock = await BatchWiseOpeningStock.findById(id)
+        .populate("batch")
+        .populate("inventory");
+
+      if (!stock) {
+        return res.status(404).json({ message: "Batch Wise Opening Stock not found." });
+      }
+
+      return res.status(200).json({
+        message: "Batch Wise Opening Stock retrieved successfully.",
+        data: stock,
+      });
+    } catch (error) {
+      return res.status(500).json({
+        message: "Error retrieving Batch Wise Opening Stock.",
+        error: error.message,
+      });
+    }
+  },
+
+  // Update a specific Batch Wise Opening Stock by ID
+  update: async (req, res) => {
+    try {
+      const { id } = req.params;
+      const { batch, inventory, ...data } = req.body;
+
+      if (batch) {
+        const batchExists = await Batch.findById(batch);
+        if (!batchExists) {
+          return res.status(404).json({ message: "Batch not found." });
+        }
+      }
+
+      if (inventory) {
+        const inventoryExists = await InventoryInformation.findById(inventory);
+        if (!inventoryExists) {
+          return res.status(404).json({ message: "Inventory not found." });
+        }
+      }
+
+      const updatedStock = await BatchWiseOpeningStock.findByIdAndUpdate(
+        id,
+        { ...data, batch, inventory },
+        { new: true, runValidators: true }
+      );
+
+      if (!updatedStock) {
+        return res.status(404).json({ message: "Batch Wise Opening Stock not found." });
+      }
+
+      return res.status(200).json({
+        message: "Batch Wise Opening Stock updated successfully.",
+        data: updatedStock,
+      });
+    } catch (error) {
+      return res.status(500).json({
+        message: "Error updating Batch Wise Opening Stock.",
+        error: error.message,
+      });
+    }
+  },
+
+  // Delete a specific Batch Wise Opening Stock by ID
+  delete: async (req, res) => {
+    try {
+      const { id } = req.params;
+      const deletedStock = await BatchWiseOpeningStock.findByIdAndDelete(id);
+
+      if (!deletedStock) {
+        return res.status(404).json({ message: "Batch Wise Opening Stock not found." });
+      }
+
+      return res.status(200).json({
+        message: "Batch Wise Opening Stock deleted successfully.",
+        data: deletedStock,
+      });
+    } catch (error) {
+      return res.status(500).json({
+        message: "Error deleting Batch Wise Opening Stock.",
+        error: error.message,
+      });
+    }
+  },
+};
