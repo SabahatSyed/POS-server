@@ -23,19 +23,41 @@ module.exports = {
         products,
       } = req.body;
 
-      // Check if SalesBill exists
+      // Validate Sales Bill
       const salesBillExists = await SalesBill.findById(salesBill);
       if (!salesBillExists) {
         return res.status(404).json({ message: "Sales Bill not found." });
       }
 
-      // Check if all products exist
-      for (let product of products) {
-        const inventoryExists = await InventoryInformation.findById(product.inventory);
-        const batchExists = await Batch.findById(product.batch);
-        if (!inventoryExists || !batchExists) {
-          return res.status(404).json({ message: "Inventory or Batch not found." });
+      // Validate Products and Update Batch Quantities
+      for (const product of products) {
+        const inventoryExists = await InventoryInformation.findById(
+          product.inventory
+        );
+        if (!inventoryExists) {
+          return res
+            .status(404)
+            .json({ message: "Inventory not found for a product." });
         }
+
+        const batch = await Batch.findById(product.batch);
+        if (!batch) {
+          return res
+            .status(404)
+            .json({ message: "Batch not found for a product." });
+        }
+
+        if (billReturn) {
+          batch.quantity += quantity;
+        } else if (batch.quantity < quantity) {
+          return res.status(400).json({
+            message: `Insufficient batch quantity for product: ${product.inventory}`,
+          });
+        } else {
+          batch.quantity -= quantity;
+        }
+
+        await batch.save();
       }
 
       const generalBill = new GeneralBill({
@@ -53,16 +75,116 @@ module.exports = {
         amount,
         products,
       });
-
-      const savedGeneralBill = await generalBill.save();
+      const savedBill = await generalBill.save();
 
       return res.status(201).json({
         message: "General Bill created successfully.",
-        data: savedGeneralBill,
+        data: savedBill,
       });
     } catch (error) {
       return res.status(500).json({
         message: "Error creating General Bill.",
+        error: error.message,
+      });
+    }
+  },
+
+  // Update a General Bill
+  update: async (req, res) => {
+    try {
+      const { id } = req.params;
+      const {
+        salesBill,
+        return: billReturn,
+        balance,
+        remarks,
+        date,
+        paymentType,
+        quantity,
+        tradeRate,
+        discount,
+        discountValue,
+        netRate,
+        amount,
+        products,
+      } = req.body;
+
+      const existingBill = await GeneralBill.findById(id);
+      if (!existingBill) {
+        return res.status(404).json({ message: "General Bill not found." });
+      }
+
+      if (salesBill) {
+        const salesBillExists = await SalesBill.findById(salesBill);
+        if (!salesBillExists) {
+          return res.status(404).json({ message: "Sales Bill not found." });
+        }
+      }
+
+      if (products) {
+        for (const product of products) {
+          const batch = await Batch.findById(product.batch);
+          if (!batch) {
+            return res
+              .status(404)
+              .json({ message: "Batch not found for a product." });
+          }
+
+          const existingProduct = existingBill.products.find(
+            (p) => p.batch.toString() === product.batch
+          );
+
+          if (billReturn) {
+            batch.quantity += product.quantity;
+            if (existingProduct) {
+              existingProduct.quantity -= product.quantity;
+              if (existingProduct.quantity < 0) {
+                return res.status(400).json({
+                  message: "Return quantity exceeds sold quantity.",
+                });
+              }
+            }
+          } else {
+            if (batch.quantity < product.quantity) {
+              return res.status(400).json({
+                message: `Insufficient batch quantity for product: ${product.inventory}`,
+              });
+            }
+
+            batch.quantity -= product.quantity;
+          }
+
+          await batch.save();
+        }
+      }
+
+      const updatedBill = await GeneralBill.findByIdAndUpdate(
+        id,
+        {
+          salesBill,
+          return: billReturn,
+          balance,
+          remarks,
+          date,
+          paymentType,
+          quantity,
+          tradeRate,
+          discount,
+          discountValue,
+          netRate,
+          amount,
+          products,
+        },
+        { new: true, runValidators: true }
+      );
+
+      return res.status(200).json({
+        message: "General Bill updated successfully.",
+        data: updatedBill,
+      });
+    } catch (error) {
+      return res.status(500).json({
+        message: "Error updating General Bill.",
         error: error.message,
       });
     }
@@ -108,77 +230,6 @@ module.exports = {
     } catch (error) {
       return res.status(500).json({
         message: "Error retrieving General Bill.",
-        error: error.message,
-      });
-    }
-  },
-
-  // Update a General Bill
-  update: async (req, res) => {
-    try {
-      const { id } = req.params;
-      const {
-        salesBill,
-        return: billReturn,
-        balance,
-        remarks,
-        date,
-        paymentType,
-        quantity,
-        tradeRate,
-        discount,
-        discountValue,
-        netRate,
-        amount,
-        products,
-      } = req.body;
-
-      // Check if SalesBill exists
-      const salesBillExists = await SalesBill.findById(salesBill);
-      if (!salesBillExists) {
-        return res.status(404).json({ message: "Sales Bill not found." });
-      }
-
-      // Check if all products exist
-      for (let product of products) {
-        const inventoryExists = await InventoryInformation.findById(product.inventory);
-        const batchExists = await Batch.findById(product.batch);
-        if (!inventoryExists || !batchExists) {
-          return res.status(404).json({ message: "Inventory or Batch not found." });
-        }
-      }
-
-      const updatedGeneralBill = await GeneralBill.findByIdAndUpdate(
-        id,
-        {
-          salesBill,
-          return: billReturn,
-          balance,
-          remarks,
-          date,
-          paymentType,
-          quantity,
-          tradeRate,
-          discount,
-          discountValue,
-          netRate,
-          amount,
-          products,
-        },
-        { new: true, runValidators: true }
-      );
-
-      if (!updatedGeneralBill) {
-        return res.status(404).json({ message: "General Bill not found." });
-      }
-
-      return res.status(200).json({
-        message: "General Bill updated successfully.",
-        data: updatedGeneralBill,
-      });
-    } catch (error) {
-      return res.status(500).json({
-        message: "Error updating General Bill.",
         error: error.message,
       });
     }
