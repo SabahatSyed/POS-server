@@ -22,17 +22,26 @@ module.exports = {
         return res.status(404).json({ message: "Salesman not found." });
       }
 
-      // Validate Products
+      // Validate Products and Update Batch Quantities
       for (const product of products) {
         const inventoryExists = await InventoryInformation.findById(product.inventory);
         if (!inventoryExists) {
           return res.status(404).json({ message: "Inventory not found for a product." });
         }
 
-        const batchExists = await Batch.findById(product.batch);
-        if (!batchExists) {
+        const batch = await Batch.findById(product.batch);
+        if (!batch) {
           return res.status(404).json({ message: "Batch not found for a product." });
         }
+
+        if (batch.quantity < data.quantity) {
+          return res.status(400).json({
+            message: `Insufficient batch quantity for product: ${product.inventory}`,
+          });
+        }
+
+        batch.quantity -= data.quantity;
+        await batch.save();
       }
 
       const salesBill = new SalesBill({ ...data, chartOfAccount, salesman, products });
@@ -50,58 +59,16 @@ module.exports = {
     }
   },
 
-  // Retrieve all Sales Bills
-  getAll: async (req, res) => {
-    try {
-      const salesBills = await SalesBill.find()
-        .populate("chartOfAccount")
-        .populate("salesman")
-        .populate("products.inventory")
-        .populate("products.batch");
-
-      return res.status(200).json({
-        message: "Sales Bills retrieved successfully.",
-        data: salesBills,
-      });
-    } catch (error) {
-      return res.status(500).json({
-        message: "Error retrieving Sales Bills.",
-        error: error.message,
-      });
-    }
-  },
-
-  // Retrieve a specific Sales Bill by ID
-  getById: async (req, res) => {
-    try {
-      const { id } = req.params;
-      const salesBill = await SalesBill.findById(id)
-        .populate("chartOfAccount")
-        .populate("salesman")
-        .populate("products.inventory")
-        .populate("products.batch");
-
-      if (!salesBill) {
-        return res.status(404).json({ message: "Sales Bill not found." });
-      }
-
-      return res.status(200).json({
-        message: "Sales Bill retrieved successfully.",
-        data: salesBill,
-      });
-    } catch (error) {
-      return res.status(500).json({
-        message: "Error retrieving Sales Bill.",
-        error: error.message,
-      });
-    }
-  },
-
   // Update a Sales Bill
   update: async (req, res) => {
     try {
       const { id } = req.params;
-      const { chartOfAccount, salesman, products, ...data } = req.body;
+      const { chartOfAccount, salesman, products, return: isReturn, ...data } = req.body;
+
+      const existingBill = await SalesBill.findById(id);
+      if (!existingBill) {
+        return res.status(404).json({ message: "Sales Bill not found." });
+      }
 
       if (chartOfAccount) {
         const accountExists = await ChartOfAccount.findById(chartOfAccount);
@@ -119,15 +86,35 @@ module.exports = {
 
       if (products) {
         for (const product of products) {
-          const inventoryExists = await InventoryInformation.findById(product.inventory);
-          if (!inventoryExists) {
-            return res.status(404).json({ message: "Inventory not found for a product." });
-          }
-
-          const batchExists = await Batch.findById(product.batch);
-          if (!batchExists) {
+          const batch = await Batch.findById(product.batch);
+          if (!batch) {
             return res.status(404).json({ message: "Batch not found for a product." });
           }
+
+          if (isReturn) {
+            batch.quantity += data.quantity;
+            const existingProduct = existingBill.products.find(
+              (p) => p.batch.toString() === product.batch
+            );
+            if (existingProduct) {
+              existingProduct.quantity -= data.quantity;
+              if (existingProduct.quantity < 0) {
+                return res.status(400).json({
+                  message: "Return quantity exceeds sold quantity.",
+                });
+              }
+            }
+          } else {
+            if (batch.quantity < data.quantity) {
+              return res.status(400).json({
+                message: `Insufficient batch quantity for product: ${product.inventory}`,
+              });
+            }
+
+            batch.quantity -= data.quantity;
+          }
+
+          await batch.save();
         }
       }
 
@@ -136,10 +123,6 @@ module.exports = {
         { ...data, chartOfAccount, salesman, products },
         { new: true, runValidators: true }
       );
-
-      if (!updatedBill) {
-        return res.status(404).json({ message: "Sales Bill not found." });
-      }
 
       return res.status(200).json({
         message: "Sales Bill updated successfully.",
@@ -153,25 +136,72 @@ module.exports = {
     }
   },
 
-  // Delete a Sales Bill
-  delete: async (req, res) => {
-    try {
-      const { id } = req.params;
-      const deletedBill = await SalesBill.findByIdAndDelete(id);
-
-      if (!deletedBill) {
-        return res.status(404).json({ message: "Sales Bill not found." });
+    // Retrieve all Sales Bills
+    getAll: async (req, res) => {
+      try {
+        const salesBills = await SalesBill.find()
+          .populate("chartOfAccount")
+          .populate("salesman")
+          .populate("products.inventory")
+          .populate("products.batch");
+  
+        return res.status(200).json({
+          message: "Sales Bills retrieved successfully.",
+          data: salesBills,
+        });
+      } catch (error) {
+        return res.status(500).json({
+          message: "Error retrieving Sales Bills.",
+          error: error.message,
+        });
       }
-
-      return res.status(200).json({
-        message: "Sales Bill deleted successfully.",
-        data: deletedBill,
-      });
-    } catch (error) {
-      return res.status(500).json({
-        message: "Error deleting Sales Bill.",
-        error: error.message,
-      });
-    }
-  },
+    },
+  
+    // Retrieve a specific Sales Bill by ID
+    getById: async (req, res) => {
+      try {
+        const { id } = req.params;
+        const salesBill = await SalesBill.findById(id)
+          .populate("chartOfAccount")
+          .populate("salesman")
+          .populate("products.inventory")
+          .populate("products.batch");
+  
+        if (!salesBill) {
+          return res.status(404).json({ message: "Sales Bill not found." });
+        }
+  
+        return res.status(200).json({
+          message: "Sales Bill retrieved successfully.",
+          data: salesBill,
+        });
+      } catch (error) {
+        return res.status(500).json({
+          message: "Error retrieving Sales Bill.",
+          error: error.message,
+        });
+      }
+    },
+  
+    // Delete a Sales Bill
+    delete: async (req, res) => {
+      try {
+        const { id } = req.params;
+        const deletedBill = await SalesBill.findByIdAndDelete(id);
+  
+        if (!deletedBill) {
+          return res.status(404).json({ message: "Sales Bill not found." });
+        }
+  
+        return res.status(200).json({
+          message: "Sales Bill deleted successfully.",
+          data: deletedBill,
+        });
+      } catch (error) {
+        return res.status(500).json({
+          message: "Error deleting Sales Bill.",
+          error: error.message,
+        });
+      }
+    },
 };
