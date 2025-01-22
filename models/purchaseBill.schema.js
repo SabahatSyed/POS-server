@@ -9,7 +9,7 @@ const purchaseBillSchema = new mongoose.Schema(
     },
     supplier: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "ChartOfAccount", // Assuming suppliers are also stored in Chart of Account
+      ref: "Salesman",
       required: true,
     },
     products: [
