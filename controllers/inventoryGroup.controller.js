@@ -1,3 +1,4 @@
+const { aggregate, mongoID } = require("../helpers/filter.helper");
 const InventoryGroup = require("../models/inventoryGroup.schema");
 
 module.exports = {
@@ -32,7 +33,19 @@ module.exports = {
   // Retrieve all Inventory Groups
   getAll: async (req, res) => {
     try {
-      const inventoryGroups = await InventoryGroup.find();
+      const { id, text } = req.query;
+
+      const inventoryGroups = await aggregate(InventoryGroup, {
+          pagination: req.query,
+          filter: {
+              _id: mongoID(id),
+              search: {
+                  value: text,
+                  fields: ['code','description']
+              }
+          },
+          pipeline: []
+      });
       return res.status(200).json({
         message: "Inventory Groups retrieved successfully.",
         data: inventoryGroups,
@@ -70,7 +83,7 @@ module.exports = {
   // Update a specific Inventory Group by ID
   update: async (req, res) => {
     try {
-      const { id } = req.params;
+      const { id } = req.query;
       const { code, description } = req.body;
 
       // Check if the code is being updated to an existing one
