@@ -54,7 +54,7 @@ module.exports = {
     );
   },
 
-  registrationEmail: async (name, randomPassword) => {
+  registrationEmail: async (name,email, randomPassword) => {
     transporter.verify(function (error, success) {
       if (error) {
         console.log(error);
