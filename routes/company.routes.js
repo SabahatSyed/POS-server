@@ -4,7 +4,7 @@ const { validate } = require("../validations/validator");
 const { check } = require("../validations/company.validation");
 
 router.post(
-  "/register",
+  "/",
   //validate(check("register")),
   CompanyController.registerCompany
 );
