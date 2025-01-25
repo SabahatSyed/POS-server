@@ -4,12 +4,6 @@ exports.check = (method) => {
     switch (method) {
         case "createMainGroup": {
             return [
-              check("seqNumber")
-                .notEmpty()
-                .withMessage("Sequence Number cannot be empty")
-                .bail()
-                .isInt({ min: 1 })
-                .withMessage("Sequence Number must be a positive integer"),
               check("code")
                 .notEmpty()
                 .withMessage("Code cannot be empty")
@@ -26,10 +20,6 @@ exports.check = (method) => {
           }
           case "updateMainGroup": {
             return [
-              check("seqNumber")
-                .optional()
-                .isInt({ min: 1 })
-                .withMessage("Sequence Number must be a positive integer"),
               check("code")
                 .optional()
                 .isLength({ max: 10 })

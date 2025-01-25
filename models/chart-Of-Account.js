@@ -18,30 +18,12 @@ const chartOfAccountSchema = new mongoose.Schema(
     cnic: {
       type: String,
       required: true,
-      validate: {
-        validator: function (v) {
-          return /\d{13}/.test(v); // 13-digit CNIC
-        },
-        message: (props) => `${props.value} is not a valid CNIC!`,
-      },
     },
     phone: {
       type: String,
-      validate: {
-        validator: function (v) {
-          return /\d{10,15}/.test(v); // 10-15 digits
-        },
-        message: (props) => `${props.value} is not a valid phone number!`,
-      },
     },
     mobile: {
       type: String,
-      validate: {
-        validator: function (v) {
-          return /\d{10,15}/.test(v); // 10-15 digits
-        },
-        message: (props) => `${props.value} is not a valid mobile number!`,
-      },
     },
     balanceBF: {
       type: Number,

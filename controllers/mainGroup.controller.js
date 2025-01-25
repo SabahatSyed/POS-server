@@ -1,18 +1,19 @@
+const { aggregate, mongoID } = require("../helpers/filter.helper");
 const MainGroup = require("../models/Main-Group");
 
 module.exports = {
   // Create a new MainGroup
   create: async (req, res) => {
     try {
-      const { seqNumber, code, description } = req.body;
-
-      // Validate required fields
-      if (!seqNumber || !code || !description) {
-        return res.status(400).json({ message: "All fields are required." });
-      }
+      const { code, description } = req.body;
+      
+      const maxSeqNumber = await MainGroup.findOne()
+      .sort({ seqNumber: -1 })
+      .select("seqNumber");
+    const newSeqNumber = maxSeqNumber ? maxSeqNumber.seqNumber + 1 : 1;
 
       const mainGroup = new MainGroup({
-        seqNumber,
+        seqNumber:newSeqNumber,
         code,
         description,
       });
@@ -33,7 +34,19 @@ module.exports = {
   // Retrieve all MainGroups
   getAll: async (req, res) => {
     try {
-      const mainGroups = await MainGroup.find();
+      const { id, text } = req.query;
+
+      const mainGroups = await aggregate(MainGroup, {
+          pagination: req.query,
+          filter: {
+              _id: mongoID(id),
+              search: {
+                  value: text,
+                  fields: ['code','description','seqNumber']
+              }
+          },
+          pipeline: []
+      });
       return res.status(200).json({
         message: "MainGroups retrieved successfully.",
         data: mainGroups,
@@ -72,11 +85,11 @@ module.exports = {
   update: async (req, res) => {
     try {
       const { id } = req.params;
-      const { seqNumber, code, description } = req.body;
+      const { code, description } = req.body;
 
       const updatedMainGroup = await MainGroup.findByIdAndUpdate(
         id,
-        { seqNumber, code, description },
+        { code, description },
         { new: true, runValidators: true }
       );
 

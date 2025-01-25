@@ -1,3 +1,4 @@
+const { aggregate, mongoID } = require("../helpers/filter.helper");
 const MainGroup = require("../models/Main-Group");
 const ChartOfAccount = require("../models/chart-Of-Account");
 
@@ -38,7 +39,19 @@ module.exports = {
   // Retrieve all Chart of Accounts
   getAll: async (req, res) => {
     try {
-      const chartOfAccounts = await ChartOfAccount.find().populate("mainGroup");
+      const { id, text } = req.query;
+
+      const chartOfAccounts = await aggregate(ChartOfAccount, {
+          pagination: req.query,
+          filter: {
+              _id: mongoID(id),
+              search: {
+                  value: text,
+                  fields: ['code','description','cnic','address']
+              }
+          },
+          pipeline: []
+      });
       return res.status(200).json({
         message: "Chart of Accounts retrieved successfully.",
         data: chartOfAccounts,

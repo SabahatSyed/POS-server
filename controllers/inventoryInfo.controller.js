@@ -1,5 +1,6 @@
 const InventoryInfo = require("../models/inventoryInfo.schema");
 const InventoryGroup = require("../models/inventoryGroup.schema");
+const { aggregate, mongoID } = require("../helpers/filter.helper");
 
 module.exports = {
   // Create a new Inventory Information entry
@@ -33,7 +34,19 @@ module.exports = {
   // Retrieve all Inventory Information entries
   getAll: async (req, res) => {
     try {
-      const inventoryInfos = await InventoryInfo.find().populate("inventoryGroup");
+      const { id, text } = req.query;
+
+      const inventoryInfos = await aggregate(InventoryInfo, {
+          pagination: req.query,
+          filter: {
+              _id: mongoID(id),
+              search: {
+                  value: text,
+                  fields: ['code','description','name']
+              }
+          },
+          pipeline: []
+      });
       return res.status(200).json({
         message: "Inventory Information retrieved successfully.",
         data: inventoryInfos,
