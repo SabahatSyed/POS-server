@@ -32,12 +32,12 @@ exports.check = (method) => {
           .bail()
           .isMongoId()
           .withMessage("Invalid Batch ID."),
-        check("inventory")
+        check("inventoryInformation")
           .notEmpty()
-          .withMessage("Inventory is required.")
+          .withMessage("InventoryInformation is required.")
           .bail()
           .isMongoId()
-          .withMessage("Invalid Inventory ID."),
+          .withMessage("Invalid InventoryInformation ID."),
       ];
     case "update":
       return [
@@ -69,12 +69,12 @@ exports.check = (method) => {
           .bail()
           .isMongoId()
           .withMessage("Invalid Batch ID."),
-        check("inventory")
+        check("inventoryInformation")
           .notEmpty()
-          .withMessage("Inventory is required.")
+          .withMessage("InventoryInformation is required.")
           .bail()
           .isMongoId()
-          .withMessage("Invalid Inventory ID."),
+          .withMessage("Invalid InventoryInformation ID."),
       ];
     default:
       return [];

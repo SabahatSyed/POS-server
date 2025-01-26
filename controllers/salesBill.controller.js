@@ -1,6 +1,6 @@
 const SalesBill = require("../models/salesBill.schema");
 const ChartOfAccount = require("../models/chart-Of-Account");
-const Salesman = require("../models/salesman.schema");
+const Salesman = require("../models/salesmen.schema");
 const InventoryInformation = require("../models/inventoryInfo.schema");
 const Batch = require("../models/batch.schema");
 

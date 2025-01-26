@@ -1,3 +1,4 @@
+const { aggregate, mongoID } = require("../helpers/filter.helper");
 const Batch = require("../models/batch.schema");
 const InventoryInformation = require("../models/inventoryInfo.schema");
 
@@ -5,15 +6,15 @@ module.exports = {
   // Create a new Batch
   create: async (req, res) => {
     try {
-      const { inventory, ...batchData } = req.body;
+      const { inventoryInformation, ...batchData } = req.body;
 
       // Check if the referenced inventory exists
-      const inventoryExists = await InventoryInformation.findById(inventory);
+      const inventoryExists = await InventoryInformation.findById(inventoryInformation);
       if (!inventoryExists) {
         return res.status(404).json({ message: "Inventory not found." });
       }
 
-      const batch = new Batch({ ...batchData, inventory });
+      const batch = new Batch({ ...batchData, inventoryInformation });
       const savedBatch = await batch.save();
 
       return res.status(201).json({
@@ -31,7 +32,19 @@ module.exports = {
   // Retrieve all Batches
   getAll: async (req, res) => {
     try {
-      const batches = await Batch.find().populate("inventory");
+      const { id, text } = req.query;
+
+      const batches = await aggregate(Batch, {
+          pagination: req.query,
+          filter: {
+              _id: mongoID(id),
+              search: {
+                  value: text,
+                  fields: ['code','description','supplierName','supplierCode']
+              }
+          },
+          pipeline: []
+      });
       return res.status(200).json({
         message: "Batches retrieved successfully.",
         data: batches,
@@ -70,10 +83,10 @@ module.exports = {
   update: async (req, res) => {
     try {
       const { id } = req.params;
-      const { inventory, ...batchData } = req.body;
+      const { inventoryInformation, ...batchData } = req.body;
 
-      if (inventory) {
-        const inventoryExists = await InventoryInformation.findById(inventory);
+      if (inventoryInformation) {
+        const inventoryExists = await InventoryInformation.findById(inventoryInformation);
         if (!inventoryExists) {
           return res.status(404).json({ message: "Inventory not found." });
         }
@@ -81,7 +94,7 @@ module.exports = {
 
       const updatedBatch = await Batch.findByIdAndUpdate(
         id,
-        { ...batchData, inventory },
+        { ...batchData, inventoryInformation },
         { new: true, runValidators: true }
       );
 

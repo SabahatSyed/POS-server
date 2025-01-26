@@ -14,7 +14,7 @@ const batchSchema = new mongoose.Schema(
       trim: true,
     },
     date: {
-      type: Date,
+      type: String,
       required: true,
     },
     supplierName: {
@@ -27,7 +27,7 @@ const batchSchema = new mongoose.Schema(
       required: true,
       trim: true,
     },
-    inventory: {
+    inventoryInformation: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "InventoryInformation",
       required: true,

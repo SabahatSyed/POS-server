@@ -1,12 +1,13 @@
 const BatchWiseOpeningStock = require("../models/batchWiseOpeningStock.schema");
 const Batch = require("../models/batch.schema");
 const InventoryInformation = require("../models/inventoryInfo.schema");
+const { aggregate, mongoID } = require("../helpers/filter.helper");
 
 module.exports = {
   // Create a new Batch Wise Opening Stock entry
   create: async (req, res) => {
     try {
-      const { batch, inventory, ...data } = req.body;
+      const { batch, inventoryInformation, ...data } = req.body;
 
       // Check if the referenced Batch exists
       const batchExists = await Batch.findById(batch);
@@ -15,12 +16,12 @@ module.exports = {
       }
 
       // Check if the referenced Inventory exists
-      const inventoryExists = await InventoryInformation.findById(inventory);
-      if (!inventoryExists) {
+      const inventoryInformationExists = await InventoryInformation.findById(inventoryInformation);
+      if (!inventoryInformationExists) {
         return res.status(404).json({ message: "Inventory not found." });
       }
 
-      const openingStock = new BatchWiseOpeningStock({ ...data, batch, inventory });
+      const openingStock = new BatchWiseOpeningStock({ ...data, batch, inventoryInformation });
       const savedStock = await openingStock.save();
 
       return res.status(201).json({
@@ -38,9 +39,19 @@ module.exports = {
   // Retrieve all Batch Wise Opening Stocks
   getAll: async (req, res) => {
     try {
-      const stocks = await BatchWiseOpeningStock.find()
-        .populate("batch")
-        .populate("inventory");
+      const { id, text } = req.query;
+
+      const stocks = await aggregate(BatchWiseOpeningStock, {
+          pagination: req.query,
+          filter: {
+              _id: mongoID(id),
+              search: {
+                  value: text,
+                  fields: ['code','description']
+              }
+          },
+          pipeline: []
+      });
       return res.status(200).json({
         message: "Batch Wise Opening Stocks retrieved successfully.",
         data: stocks,
@@ -59,7 +70,7 @@ module.exports = {
       const { id } = req.params;
       const stock = await BatchWiseOpeningStock.findById(id)
         .populate("batch")
-        .populate("inventory");
+        .populate("inventoryInformation");
 
       if (!stock) {
         return res.status(404).json({ message: "Batch Wise Opening Stock not found." });
@@ -81,7 +92,7 @@ module.exports = {
   update: async (req, res) => {
     try {
       const { id } = req.params;
-      const { batch, inventory, ...data } = req.body;
+      const { batch, inventoryInformation, ...data } = req.body;
 
       if (batch) {
         const batchExists = await Batch.findById(batch);
@@ -90,16 +101,16 @@ module.exports = {
         }
       }
 
-      if (inventory) {
-        const inventoryExists = await InventoryInformation.findById(inventory);
-        if (!inventoryExists) {
+      if (inventoryInformation) {
+        const inventoryInformationExists = await InventoryInformation.findById(inventoryInformation);
+        if (!inventoryInformationExists) {
           return res.status(404).json({ message: "Inventory not found." });
         }
       }
 
       const updatedStock = await BatchWiseOpeningStock.findByIdAndUpdate(
         id,
-        { ...data, batch, inventory },
+        { ...data, batch, inventoryInformation },
         { new: true, runValidators: true }
       );
 

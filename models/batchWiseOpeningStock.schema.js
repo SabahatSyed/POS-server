@@ -23,9 +23,9 @@ const batchWiseOpeningStockSchema = new mongoose.Schema(
       ref: "Batch",
       required: true,
     },
-    inventory: {
+    inventoryInformation: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "InventoryInformation",
+      ref: "InventoryInfo",
       required: true,
     },
   },

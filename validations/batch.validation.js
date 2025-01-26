@@ -22,8 +22,9 @@ exports.check = (method) => {
           .notEmpty()
           .withMessage("Date is required.")
           .bail()
-          .isISO8601()
-          .withMessage("Invalid date format."),
+          .isString()
+          .withMessage("Invalid date format.")
+          .trim(),,
         check("supplierName")
           .notEmpty()
           .withMessage("Supplier Name is required.")
@@ -38,12 +39,12 @@ exports.check = (method) => {
           .isString()
           .withMessage("Supplier Code must be a string.")
           .trim(),
-        check("inventory")
+        check("inventoryInformation")
           .notEmpty()
-          .withMessage("Inventory is required.")
+          .withMessage("inventoryInformation is required.")
           .bail()
           .isMongoId()
-          .withMessage("Invalid Inventory ID."),
+          .withMessage("Invalid inventoryInformation ID."),
       ];
     case "update":
       return [
@@ -61,12 +62,13 @@ exports.check = (method) => {
           .isString()
           .withMessage("Description must be a string.")
           .trim(),
-        check("date")
+          check("date")
           .notEmpty()
           .withMessage("Date is required.")
           .bail()
-          .isISO8601()
-          .withMessage("Invalid date format."),
+          .isString()
+          .withMessage("Invalid date format.")
+          .trim(),,
         check("supplierName")
           .notEmpty()
           .withMessage("Supplier Name is required.")
@@ -81,12 +83,12 @@ exports.check = (method) => {
           .isString()
           .withMessage("Supplier Code must be a string.")
           .trim(),
-        check("inventory")
+        check("inventoryInformation")
           .notEmpty()
-          .withMessage("Inventory is required.")
+          .withMessage("inventoryInformation is required.")
           .bail()
           .isMongoId()
-          .withMessage("Invalid Inventory ID."),
+          .withMessage("Invalid inventoryInformation ID."),
       ];
     default:
       return [];

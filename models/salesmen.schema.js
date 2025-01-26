@@ -29,7 +29,7 @@ const salesmanSchema = new mongoose.Schema(
       trim: true,
     },
     commission: {
-      type: Number,
+      type: String,
       required: true,
     },
     address: {
