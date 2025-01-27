@@ -41,13 +41,24 @@ module.exports = {
     } catch (err) {
       return res.forbidden("Invalid Email or Password");
     }
-
+    console.log("yser", user);
     const token = createToken({
-      sub: user.id,
+      sub: user._id,
       name: user.name,
     });
 
-    return res.success("Login successfull", { token, role: user.role });
+    return res.success("Login successfull", {
+      access_token: token,
+      user: {
+        role: user.role,
+        name: user.name,
+        email: user.email,
+        pageAccess: user.pagesAccess,
+        id: user._id,
+        companyId: user.companyId,
+        seqNumber: user.seqNumber,
+      },
+    });
   },
 
   register: async (req, res) => {
@@ -191,5 +202,54 @@ module.exports = {
     await user.save({ validateBeforeSave: false });
 
     res.success("Password changed successfully.", { changed: true });
+  },
+
+  loginWithToken: async (req, res) => {
+    const { accessToken } = req.body;
+
+    if (!accessToken) {
+      return res.status(400).json({ message: "Access token is required" });
+    }
+
+    try {
+      // Verify the token
+      const decoded = jwt.verify(accessToken, process.env.JWT_SECRET);
+
+      // Find the user by ID
+      const user = await User.findById(decoded.sub);
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+
+      if (user.status !== "Approved") {
+        return res
+          .status(403)
+          .json({ message: "Your account has not been approved yet" });
+      }
+
+      // Create a new token
+      const token = createToken({
+        sub: user._id,
+        name: user.name,
+      });
+
+      return res.status(200).json({
+        message: "Login successful",
+        access_token: token,
+        user: {
+          role: user.role,
+          name: user.name,
+          email: user.email,
+          pageAccess: user.pagesAccess,
+          id: user._id,
+          companyId: user.companyId,
+          seqNumber: user.seqNumber,
+        },
+      });
+    } catch (error) {
+      return res
+        .status(401)
+        .json({ message: "Invalid or expired token", error });
+    }
   },
 };
