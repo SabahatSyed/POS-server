@@ -10,7 +10,6 @@ module.exports = {
       const {
         salesBill,
         return: billReturn,
-        balance,
         remarks,
         date,
         paymentType,
@@ -28,11 +27,12 @@ module.exports = {
       if (!salesBillExists) {
         return res.status(404).json({ message: "Sales Bill not found." });
       }
-
+      
       // Validate Products and Update Batch Quantities
+      let processedProducts= [];
       for (const product of products) {
         const inventoryExists = await InventoryInformation.findById(
-          product.inventory
+          product.inventoryInformation
         );
         if (!inventoryExists) {
           return res
@@ -48,22 +48,35 @@ module.exports = {
         }
 
         if (billReturn) {
-          batch.quantity += quantity;
+          const updatedBatchQuantity = Number(batch.quantity) + Number(quantity)
+          batch.quantity = updatedBatchQuantity;
         } else if (batch.quantity < quantity) {
           return res.status(400).json({
-            message: `Insufficient batch quantity for product: ${product.inventory}`,
+            message: `Insufficient batch quantity for product: ${product.inventoryInformation}`,
           });
         } else {
           batch.quantity -= quantity;
         }
 
         await batch.save();
+
+        processedProducts.push({
+          inventoryInformation: {
+            inventoryId: inventoryExists._id,
+            name: inventoryExists.name,
+            code: inventoryExists.code,
+          },
+          batch: {
+            batchId: batch._id,
+            code: batch.code,
+            description: batch.description,
+          },
+        });
       }
 
       const generalBill = new GeneralBill({
         salesBill,
         return: billReturn,
-        balance,
         remarks,
         date,
         paymentType,
@@ -73,7 +86,7 @@ module.exports = {
         discountValue,
         netRate,
         amount,
-        products,
+        products:processedProducts,
       });
       const savedBill = await generalBill.save();
 
@@ -96,7 +109,6 @@ module.exports = {
       const {
         salesBill,
         return: billReturn,
-        balance,
         remarks,
         date,
         paymentType,
@@ -121,8 +133,18 @@ module.exports = {
         }
       }
 
+      let updatedProducts = [];
+
       if (products) {
         for (const product of products) {
+          const inventoryExists = await InventoryInformation.findById(
+            product.inventoryInformation
+          );
+          if (!inventoryExists) {
+            return res
+              .status(404)
+              .json({ message: "Inventory not found for a product." });
+          }
           const batch = await Batch.findById(product.batch);
           if (!batch) {
             return res
@@ -131,11 +153,12 @@ module.exports = {
           }
 
           const existingProduct = existingBill.products.find(
-            (p) => p.batch.toString() === product.batch
+            (p) => p.batch.batchId.toString() === product.batch.batchId
           );
 
           if (billReturn) {
-            batch.quantity += product.quantity;
+            const updatedBatchQuantity= Number(batch.quantity) + Number(product.quantity)
+            batch.quantity = updatedBatchQuantity;
             if (existingProduct) {
               existingProduct.quantity -= product.quantity;
               if (existingProduct.quantity < 0) {
@@ -147,7 +170,7 @@ module.exports = {
           } else {
             if (batch.quantity < product.quantity) {
               return res.status(400).json({
-                message: `Insufficient batch quantity for product: ${product.inventory}`,
+                message: `Insufficient batch quantity for product: ${product.inventoryInformation}`,
               });
             }
 
@@ -155,6 +178,19 @@ module.exports = {
           }
 
           await batch.save();
+
+          updatedProducts.push({
+            inventoryInformation: {
+              inventoryId: inventoryExists._id,
+              name: inventoryExists.name,
+              code: inventoryExists.code,
+            },
+            batch: {
+              batchId: batch._id,
+              code: batch.code,
+              description: batch.description,
+            },
+          });
         }
       }
 
@@ -163,7 +199,6 @@ module.exports = {
         {
           salesBill,
           return: billReturn,
-          balance,
           remarks,
           date,
           paymentType,

@@ -1,6 +1,6 @@
 const mongoose = require("mongoose");
 
-const salesmanSchema = new mongoose.Schema(
+const salesmenSchema = new mongoose.Schema(
   {
     code: {
       type: String,
@@ -45,4 +45,4 @@ const salesmanSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-module.exports = mongoose.model("Salesman", salesmanSchema);
+module.exports = mongoose.model("salesmen", salesmenSchema);

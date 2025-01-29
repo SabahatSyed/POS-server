@@ -18,6 +18,13 @@ exports.check = (method) => {
           .isString()
           .withMessage("Description must be a string.")
           .trim(),
+           check("quantity")
+          .notEmpty()
+          .withMessage("quantity is required.")
+          .bail()
+          .isString()
+          .withMessage("quantity must be a string.")
+          .trim(),
         check("date")
           .notEmpty()
           .withMessage("Date is required.")
@@ -61,6 +68,13 @@ exports.check = (method) => {
           .bail()
           .isString()
           .withMessage("Description must be a string.")
+          .trim(),
+           check("quantity")
+          .notEmpty()
+          .withMessage("quantity is required.")
+          .bail()
+          .isString()
+          .withMessage("quantity must be a string.")
           .trim(),
           check("date")
           .notEmpty()

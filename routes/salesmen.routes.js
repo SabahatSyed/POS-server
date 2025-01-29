@@ -1,24 +1,24 @@
 const router = require("express").Router();
-const salesmanController = require("../controllers/salesmen.controller");
+const salesmenController = require("../controllers/salesmen.controller");
 const { validate } = require("../validations/validator");
-const { check } = require("../validations/salesman.validation");
+const { check } = require("../validations/salesmen.validation");
 
 router.post(
   "/",
   validate(check("create")),
-  salesmanController.create
+  salesmenController.create
 );
 
-router.get("/", salesmanController.getAll);
+router.get("/", salesmenController.getAll);
 
-router.get("/:id", salesmanController.getById);
+router.get("/:id", salesmenController.getById);
 
 router.put(
   "/:id",
   validate(check("update")),
-  salesmanController.update
+  salesmenController.update
 );
 
-router.delete("/:id", salesmanController.delete);
+router.delete("/:id", salesmenController.delete);
 
 module.exports = router;

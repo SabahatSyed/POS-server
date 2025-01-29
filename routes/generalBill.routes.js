@@ -4,7 +4,7 @@ const { validate } = require("../validations/validator");
 const { check } = require("../validations/generalBill.validation");
 
 // Route to create a General Bill
-router.post("/create", validate(check("create")), generalBillController.create);
+router.post("/", validate(check("create")), generalBillController.create);
 
 // Route to get all General Bills
 router.get("/all", generalBillController.getAll);

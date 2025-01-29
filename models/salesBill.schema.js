@@ -7,22 +7,30 @@ const salesBillSchema = new mongoose.Schema(
       ref: "ChartOfAccount",
       required: true,
     },
-    salesman: {
+    salesmen: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "Salesman",
+      ref: "salesmen",
       required: true,
     },
     products: [
       {
-        inventory: {
-          type: mongoose.Schema.Types.ObjectId,
-          ref: "InventoryInformation",
-          required: true,
+        inventoryInformation: {
+          inventoryId: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: "InventoryInformation",
+            required: true,
+          },
+          name: { type: String, required: true },
+          code: { type: String, required: true },
         },
         batch: {
-          type: mongoose.Schema.Types.ObjectId,
-          ref: "Batch",
-          required: true,
+          batchId: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: "Batch",
+            required: true,
+          },
+          description: { type: String, required: true },
+          code: { type: String, required: true },
         },
       },
     ],
@@ -76,7 +84,7 @@ const salesBillSchema = new mongoose.Schema(
     },
     paymentType: {
       type: String,
-      enum: ["Cash", "Credit"],
+      enum: ["cash", "credit"],
       required: true,
     },
   },

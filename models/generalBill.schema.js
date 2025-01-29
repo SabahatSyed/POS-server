@@ -11,66 +11,63 @@ const generalBillSchema = new mongoose.Schema(
       type: Boolean,
       default: false,
     },
-    balance: {
-      type: Number,
-      required: true,
-      min: 0,
-    },
     remarks: {
       type: String,
       trim: true,
+      required: true,
     },
     date: {
       type: Date,
       required: true,
-      default: new Date(),
     },
     paymentType: {
       type: String,
-      enum: ["Cash", "Credit"],
+      enum: ["cash", "credit"],
       required: true,
     },
     quantity: {
       type: Number,
       required: true,
-      min: 1,
     },
     tradeRate: {
       type: Number,
       required: true,
-      min: 0,
     },
     discount: {
       type: Number,
-      default: 0,
-      min: 0,
+      required: true,
     },
     discountValue: {
       type: Number,
-      default: 0,
-      min: 0,
+      required: true,
     },
     netRate: {
       type: Number,
       required: true,
-      min: 0,
     },
     amount: {
       type: Number,
       required: true,
-      min: 0,
     },
     products: [
       {
-        inventory: {
-          type: mongoose.Schema.Types.ObjectId,
-          ref: "InventoryInformation",
-          required: true,
+        inventoryInformation: {
+          inventoryId: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: "InventoryInformation",
+            required: true,
+          },
+          name: { type: String, required: true },
+          code: { type: String, required: true },
         },
         batch: {
-          type: mongoose.Schema.Types.ObjectId,
-          ref: "Batch",
-          required: true,
+          batchId: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: "Batch",
+            required: true,
+          },
+          description: { type: String, required: true },
+          code: { type: String, required: true },
         },
       },
     ],

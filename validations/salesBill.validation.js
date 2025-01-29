@@ -10,19 +10,19 @@ exports.check = (method) => {
           .bail()
           .isMongoId()
           .withMessage("Invalid Chart of Account ID."),
-        check("salesman")
+        check("salesmen")
           .notEmpty()
-          .withMessage("Salesman is required.")
+          .withMessage("salesmen is required.")
           .bail()
           .isMongoId()
-          .withMessage("Invalid Salesman ID."),
+          .withMessage("Invalid salesmen ID."),
         check("products").isArray().withMessage("Products must be an array."),
-        check("products.*.inventory")
+        check("products.*.inventoryInformation")
           .notEmpty()
-          .withMessage("Inventory is required.")
+          .withMessage("InventoryInformation is required.")
           .bail()
           .isMongoId()
-          .withMessage("Invalid Inventory ID."),
+          .withMessage("Invalid InventoryInformation ID."),
         check("products.*.batch")
           .notEmpty()
           .withMessage("Batch is required.")
@@ -45,7 +45,7 @@ exports.check = (method) => {
           .notEmpty()
           .withMessage("Payment Type is required.")
           .bail()
-          .isIn(["Cash", "Credit"])
+          .isIn(["cash", "credit"])
           .withMessage("Invalid Payment Type."),
       ];
     case "update":
@@ -56,19 +56,19 @@ exports.check = (method) => {
           .bail()
           .isMongoId()
           .withMessage("Invalid Chart of Account ID."),
-        check("salesman")
+        check("salesmen")
           .notEmpty()
-          .withMessage("Salesman is required.")
+          .withMessage("salesmen is required.")
           .bail()
           .isMongoId()
-          .withMessage("Invalid Salesman ID."),
+          .withMessage("Invalid salesmen ID."),
         check("products").isArray().withMessage("Products must be an array."),
-        check("products.*.inventory")
+        check("products.*.inventoryInformation")
           .notEmpty()
-          .withMessage("Inventory is required.")
+          .withMessage("InventoryInformation is required.")
           .bail()
           .isMongoId()
-          .withMessage("Invalid Inventory ID."),
+          .withMessage("Invalid InventoryInformation ID."),
         check("products.*.batch")
           .notEmpty()
           .withMessage("Batch is required.")
@@ -91,7 +91,7 @@ exports.check = (method) => {
           .notEmpty()
           .withMessage("Payment Type is required.")
           .bail()
-          .isIn(["Cash", "Credit"])
+          .isIn(["cash", "credit"])
           .withMessage("Invalid Payment Type."),
       ];
     default:

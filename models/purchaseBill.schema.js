@@ -7,14 +7,14 @@ const purchaseBillSchema = new mongoose.Schema(
       ref: "ChartOfAccount",
       required: true,
     },
-    supplier: {
+    salesmen: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "Salesman",
+      ref: "salesmen",
       required: true,
     },
     products: [
       {
-        inventory: {
+        inventoryInformation: {
           type: mongoose.Schema.Types.ObjectId,
           ref: "InventoryInformation",
           required: true,
@@ -27,39 +27,32 @@ const purchaseBillSchema = new mongoose.Schema(
       },
     ],
     quantity: {
-      type: Number,
+      type: String,
       required: true,
-      min: 1,
     },
     purchaseRate: {
-      type: Number,
+      type: String,
       required: true,
-      min: 0,
     },
     discount: {
-      type: Number,
+      type: String,
       default: 0,
-      min: 0,
     },
     discountValue: {
-      type: Number,
+      type: String,
       default: 0,
-      min: 0,
     },
     netRate: {
-      type: Number,
+      type: String,
       required: true,
-      min: 0,
     },
     amount: {
-      type: Number,
+      type: String,
       required: true,
-      min: 0,
     },
     balance: {
-      type: Number,
+      type: String,
       required: true,
-      min: 0,
     },
     remarks: {
       type: String,
@@ -72,7 +65,7 @@ const purchaseBillSchema = new mongoose.Schema(
     },
     paymentType: {
       type: String,
-      enum: ["Cash", "Credit"],
+      enum: ["cash", "credit"],
       required: true,
     },
   },

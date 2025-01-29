@@ -32,6 +32,10 @@ const batchSchema = new mongoose.Schema(
       ref: "InventoryInformation",
       required: true,
     },
+    quantity:{
+      type: String,
+      required: true,
+    }
   },
   { timestamps: true }
 );
