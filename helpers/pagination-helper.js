@@ -6,11 +6,11 @@ module.exports = {
 
         return { page, limit, skip }
     },
-    pageResponse: (items, page, limit, total) => {
+    pageResponse: (records, page, limit, total) => {
         total = total ? total : 0;
         const pages = limit == 0 ? 1 : Math.ceil(total / limit);
         return ({
-            items,
+            records,
             page,
             limit,
             pages: (pages ? pages : 0),

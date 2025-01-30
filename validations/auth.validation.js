@@ -26,15 +26,6 @@ exports.check = (method) => {
           .withMessage("Invalid email address")
           .bail()
           .normalizeEmail(),
-        check("password")
-          .notEmpty()
-          .withMessage("Password cannot be empty")
-          .bail()
-          .isLength({ min: 6 })
-          .withMessage("Password length should be greater than 6"),
-        check("confirmPassword")
-          .notEmpty()
-          .withMessage("Confirm Password cannot be empty"),
       ];
     }
     case "forgotAccount": {
@@ -62,7 +53,14 @@ exports.check = (method) => {
           .withMessage("Password length should be greater than 6"),
         check("confirmPassword")
           .notEmpty()
-          .withMessage("Confirm Password cannot be empty"),
+          .withMessage("Confirm Password cannot be empty")
+          .bail()
+          .custom((value, { req }) => {
+            if (value !== req.body.password) {
+              throw new Error("Passwords do not match");
+            }
+            return true;
+          }),
       ];
     }
   }

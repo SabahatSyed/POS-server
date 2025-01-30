@@ -5,7 +5,11 @@ const { check } = require("../validations/user.validation");
 
 
 
-
+router.post(
+    "/add",
+    validate(check("create")),
+    UserController.addUser
+  );
 
 
 

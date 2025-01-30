@@ -17,6 +17,7 @@ router.post(
     AuthController.login
 );
 
+router.post("/loginWithToken", validate(check("login")), AuthController.loginWithToken);
 router.post(
    "/register",
     validate(check('register')),
