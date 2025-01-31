@@ -1,4 +1,4 @@
-const app = require("./app");
+const app = require("./index");
 const { createServer } = require("./helpers/socket.helper");
 
 //Use system configuration for port or use 3000 by default.
