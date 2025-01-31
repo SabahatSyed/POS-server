@@ -5,13 +5,13 @@ const { check } = require("../validations/company.validation");
 
 router.post(
   "/",
-  //validate(check("register")),
+  // validate(check("register")),
   CompanyController.registerCompany
 );
 
 router.get(
   "/",
-  //validate(check("register")),
+  validate(check("register")),
   CompanyController.getCompanies
 );
 

@@ -40,7 +40,7 @@ module.exports = {
     
         // Generate a random password
         const randomPassword = crypto.randomBytes(8).toString("hex");
-    
+        console.log("random",randomPassword)
         // Create the user
         const user = new User({
           name,

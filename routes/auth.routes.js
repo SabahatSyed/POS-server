@@ -11,44 +11,19 @@ const { validate } = require("../validations/validator");
 
 const router = require("express").Router();
 
-router.post(
-    "/login",
-    validate(check('login')),
-    AuthController.login
-);
+router.post("/login", validate(check("login")), AuthController.login);
 
-router.post("/loginWithToken", validate(check("login")), AuthController.loginWithToken);
-router.post(
-   "/register",
-    validate(check('register')),
-    AuthController.register
-);
+router.post("/loginWithToken", AuthController.loginWithToken);
+router.post("/register", validate(check("register")), AuthController.register);
 
-router.post(
-    '/forgot',
-    AuthController.forgot
-)
+router.post("/forgot", AuthController.forgot);
 
-router.get(
-    "/profile",
-    jwtVerify(),
-    AuthController.profile
-);
+router.get("/profile", jwtVerify(), AuthController.profile);
 
-router.put(
-    "/update",
-    jwtVerify(),
-    AuthController.update
-);
+router.put("/update", jwtVerify(), AuthController.update);
 
-router.put(
-    '/forgot',
-    AuthController.forgot
-)
+router.put("/forgot", AuthController.forgot);
 
-router.put(
-    '/reset',
-    AuthController.reset
-)
+router.put("/reset", AuthController.reset);
 
-module.exports = router
+module.exports = router;

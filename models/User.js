@@ -1,6 +1,13 @@
 
 const mongoose = require('mongoose');
 const bcrypt = require('bcrypt');
+const PageAccessSchema = new mongoose.Schema({
+  read: { type: Boolean, default: false },
+  add: { type: Boolean, default: false },
+  update: { type: Boolean, default: false },
+  delete: { type: Boolean, default: false },
+});
+
 
 const userSchema = new mongoose.Schema({
     seqNumber: {
@@ -38,14 +45,14 @@ const userSchema = new mongoose.Schema({
         ref: 'Company',
         required: true
     },
-    pagesAccess: [{
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'Page'
-    }],
+    pagesAccess: {
+        type: Map,
+        of: PageAccessSchema,
+      },
     status: {
         type: String,
         enum: ['Active', 'Inactive'],
-        default: 'Inactive'
+        default: 'Active'
     },
     isDeleted: {
         type: Boolean,

@@ -1,6 +1,11 @@
 const express = require("express");
 const cors = require("cors");
 const logger = require("morgan");
+const axios = require('axios');
+const FormData = require('form-data');
+const multer = require('multer');
+const upload = multer();
+
 require("dotenv").config();
 require("express-async-errors");
 // const multer = require("multer");
@@ -30,6 +35,31 @@ app.use(logger("dev"));
 app.use(responseHandler);
 /**Main application router*/
 app.use(router);
+
+
+// Example using Express
+
+
+app.post('/upload-image', upload.single('file'), async (req, res) => {
+  const formData = new FormData();
+  formData.append('file', req.file.buffer, req.file.originalname);
+  formData.append('upload_preset', 'preset1'); // Cloudinary upload preset
+
+  try {
+    const response = await axios.post(
+      `https://api.cloudinary.com/v1_1/${process.env.REACT_APP_CLOUDINARY_CLOUD_NAME}/image/upload`,
+      formData,
+      {
+        headers: formData.getHeaders(),
+      }
+    );
+    res.json({ imageUrl: response.data.secure_url }); // Send URL back to client
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to upload image' });
+  }
+});
+
+
 
 // For static assets
 app.use("/public", express.static(__dirname + "/public"));

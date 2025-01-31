@@ -1,5 +1,6 @@
 const crypto = require("crypto");
 const User = require("../models/User");
+const Company = require("../models/Company")
 
 const { createToken } = require("../helpers/jwt.helper");
 const { uniqueQuery } = require("../helpers/filter.helper");
@@ -32,7 +33,7 @@ module.exports = {
       },
     });
     if (!user) return res.forbidden("Invalid Email or Password");
-    if (user.status != "Approved")
+    if (user.status != "Active")
       return res.forbidden("Your account has not been approved yet");
 
     try {
@@ -47,6 +48,11 @@ module.exports = {
       name: user.name,
     });
 
+    const company = await Company.findById(user.companyId);
+
+    if (!company) {
+      return res.status(404).json({ message: 'Company not found' });
+    }
     return res.success("Login successfull", {
       access_token: token,
       user: {
@@ -57,6 +63,7 @@ module.exports = {
         id: user._id,
         companyId: user.companyId,
         seqNumber: user.seqNumber,
+        theme: company.theme
       },
     });
   },
@@ -205,7 +212,7 @@ module.exports = {
   },
 
   loginWithToken: async (req, res) => {
-    const { accessToken } = req.body;
+    const { access_token:accessToken } = req.body;
 
     if (!accessToken) {
       return res.status(400).json({ message: "Access token is required" });
@@ -233,6 +240,11 @@ module.exports = {
         name: user.name,
       });
 
+      const company = await Company.findById(user.companyId);
+
+    if (!company) {
+      return res.status(404).json({ message: 'Company not found' });
+    }
       return res.status(200).json({
         message: "Login successful",
         access_token: token,
@@ -244,6 +256,7 @@ module.exports = {
           id: user._id,
           companyId: user.companyId,
           seqNumber: user.seqNumber,
+          theme: company.theme
         },
       });
     } catch (error) {
