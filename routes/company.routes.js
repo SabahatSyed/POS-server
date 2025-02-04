@@ -9,9 +9,23 @@ router.post(
   CompanyController.registerCompany
 );
 
+router.put(
+  "/:id",
+  // validate(check("register")),
+  CompanyController.updateCompany
+);
+
+router.get(
+  "/:id",
+  // validate(check("register")),
+  CompanyController.getCompanyById
+);
+
+
+
 router.get(
   "/",
-  validate(check("register")),
+  // validate(check("register")),
   CompanyController.getCompanies
 );
 

@@ -1,6 +1,8 @@
 const crypto = require("crypto");
 const User = require("../models/User");
 const Company = require("../models/Company")
+const jwt = require("jsonwebtoken");
+
 
 const { createToken } = require("../helpers/jwt.helper");
 const { uniqueQuery } = require("../helpers/filter.helper");
@@ -42,14 +44,12 @@ module.exports = {
     } catch (err) {
       return res.forbidden("Invalid Email or Password");
     }
-    console.log("yser", user);
     const token = createToken({
       sub: user._id,
       name: user.name,
     });
 
-    const company = await Company.findById(user.companyId);
-
+    const company = await Company.findById(user.companyId).populate("companyType")
     if (!company) {
       return res.status(404).json({ message: 'Company not found' });
     }
@@ -63,7 +63,9 @@ module.exports = {
         id: user._id,
         companyId: user.companyId,
         seqNumber: user.seqNumber,
-        theme: company.theme
+        theme: company.theme,
+        companyType: company.companyType.name,
+        logoURL: company.logoURL,
       },
     });
   },
@@ -213,14 +215,13 @@ module.exports = {
 
   loginWithToken: async (req, res) => {
     const { access_token:accessToken } = req.body;
-
     if (!accessToken) {
       return res.status(400).json({ message: "Access token is required" });
     }
 
     try {
       // Verify the token
-      const decoded = jwt.verify(accessToken, process.env.JWT_SECRET);
+      const decoded = jwt.verify(accessToken, process.env.JWT_SECRET_KEY);
 
       // Find the user by ID
       const user = await User.findById(decoded.sub);
@@ -228,7 +229,7 @@ module.exports = {
         return res.status(404).json({ message: "User not found" });
       }
 
-      if (user.status !== "Approved") {
+      if (user.status !== "Active") {
         return res
           .status(403)
           .json({ message: "Your account has not been approved yet" });
@@ -240,7 +241,7 @@ module.exports = {
         name: user.name,
       });
 
-      const company = await Company.findById(user.companyId);
+      const company = await Company.findById(user.companyId).populate("companyType");
 
     if (!company) {
       return res.status(404).json({ message: 'Company not found' });
@@ -256,13 +257,17 @@ module.exports = {
           id: user._id,
           companyId: user.companyId,
           seqNumber: user.seqNumber,
-          theme: company.theme
+          theme: company.theme,
+          companyType: company.companyType.name,
+          logoURL: company.logoURL,
         },
       });
     } catch (error) {
+      console.log("error",error)
       return res
         .status(401)
         .json({ message: "Invalid or expired token", error });
     }
   },
 };
+
